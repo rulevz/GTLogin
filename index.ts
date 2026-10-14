@@ -4,8 +4,27 @@ import rateLimit from 'express-rate-limit';
 import path from 'path';
 import fs from 'fs';
 
+/*
+  @note Gurotopia fork of GTLogin (github.com/YoruAkio/GTLogin, MIT).
+  @note Changes vs upstream are marked "@note gurotopia:" so they stay easy to
+        diff when upstream updates.
+*/
+
 const app = express();
-const PORT = 3000;
+const PORT = Number(process.env.PORT ?? 3000);
+
+/* @note gurotopia: resolve from this file, not process.cwd(), so the service
+   works under systemd (or any cwd) instead of only from the repo root.
+   package.json sets "type": "module", so this is ESM scope and __dirname does
+   not exist; import.meta.dirname (Node >= 20.11) is the equivalent. */
+const ROOT = import.meta.dirname;
+const TEMPLATE_DIR = path.join(ROOT, 'template');
+const PUBLIC_DIR = path.join(ROOT, 'public');
+
+/* @note gurotopia: branding and the server_data payload are configuration, so
+   this fork can be pointed at a different deployment without code edits. */
+const BRAND = process.env.GT_BRAND ?? 'Gurotopia';
+const SERVER_DATA_FILE = process.env.GT_SERVER_DATA ?? path.join(ROOT, 'server_data.php');
 
 // @note trust proxy - set to number of proxies in front of app
 app.set('trust proxy', 1);
@@ -26,7 +45,7 @@ const limiter = rateLimit({
 app.use(limiter);
 
 // @note static files from public folder
-app.use(express.static(path.join(process.cwd(), 'public')));
+app.use(express.static(PUBLIC_DIR));
 
 // @note request logging middleware
 app.use((req: Request, _res: Response, next: NextFunction) => {
@@ -44,7 +63,47 @@ app.use((req: Request, _res: Response, next: NextFunction) => {
 
 // @note root endpoint
 app.get('/', (_req: Request, res: Response) => {
-  res.send('Hello, world!');
+  res.send(`Hello, world! This is the ${BRAND} login backend.`);
+});
+
+/**
+ * @note gurotopia: server_data.php - the client fetches this before showing the
+ * login page to learn which game server to connect to. The game server
+ * (include/https/https.cpp) already serves this on its own :443; this endpoint
+ * covers deployments that put the login backend in front instead.
+ */
+const serveServerData = (_req: Request, res: Response) => {
+  try {
+    const content = fs.readFileSync(SERVER_DATA_FILE, 'utf-8');
+    res.setHeader('Content-Type', 'text/plain');
+    res.send(content);
+  } catch {
+    console.log(`[ERROR]: cannot read server_data file at ${SERVER_DATA_FILE}`);
+    res.status(404).type('text/plain').send('server_data.php not configured');
+  }
+};
+app.all('/growtopia/server_data.php', serveServerData);
+app.all('/server_data.php', serveServerData);
+
+/**
+ * @note gurotopia: the client navigates here to close the login window.
+ * Upstream pointed this at login.growtopiagame.com, which would send our
+ * players to the official server's page.
+ */
+app.all('/player/validate/close', (_req: Request, res: Response) => {
+  res.setHeader('Content-Type', 'text/html');
+  res.send(
+    `<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">` +
+      `<meta name="viewport" content="width=device-width, initial-scale=1.0">` +
+      `<title>${BRAND}</title></head>` +
+      `<body style="font-family:sans-serif;text-align:center;padding:3rem;">` +
+      `<h3>You can close this window.</h3></body></html>`,
+  );
+});
+
+/** @note gurotopia: liveness probe for systemd / a reverse proxy. */
+app.get('/health', (_req: Request, res: Response) => {
+  res.json({ status: 'ok', brand: BRAND, uptime: process.uptime() });
 });
 
 /**
@@ -66,10 +125,16 @@ app.all('/player/login/dashboard', async (req: Request, res: Response) => {
   const encodedClientData = Buffer.from(clientData).toString('base64');
 
   // @note read dashboard template and replace placeholder
-  const templatePath = path.join(process.cwd(), 'template', 'dashboard.html');
+  const templatePath = path.join(TEMPLATE_DIR, 'dashboard.html');
 
   const templateContent = fs.readFileSync(templatePath, 'utf-8');
-  const htmlContent = templateContent.replace('{{ data }}', encodedClientData);
+
+  /* @note gurotopia: upstream used replace(), which substitutes only the FIRST
+     occurrence. The template holds the placeholder in BOTH the login and the
+     register form, so the register form kept the literal "{{ data }}" and every
+     registration failed. replaceAll() fills both. A function replacer is used so
+     "$" sequences in the payload cannot be read as replacement patterns. */
+  const htmlContent = templateContent.replaceAll('{{ data }}', () => encodedClientData);
 
   res.setHeader('Content-Type', 'text/html');
   res.send(htmlContent);
