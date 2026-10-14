@@ -1,0 +1,10 @@
+server|172.237.79.100
+port|17091
+type|1
+type2|1
+key|01234567890123450123456789012345
+iv|0123456789012345
+hkey|AABBCCDDEEFFAABB
+loginurl|login-gurotopia.vercel.app
+meta|gurotopia
+RTENDMARKERBS1001

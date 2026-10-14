@@ -5,24 +5,24 @@
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Growtopia Player Support</title>
+  <title>Gurotopia Player Support</title>
   <link rel="icon" type="image/png"
-    href="https://s3.eu-west-1.amazonaws.com/cdn.growtopiagame.com/website/resources/assets/images/growtopia.ico"
+    href="/assets/img/gurotopia.ico"
     sizes="16x16" />
   <link rel="shortcut icon"
-    href="https://s3.eu-west-1.amazonaws.com/cdn.growtopiagame.com/website/resources/assets/images/growtopia.ico"
+    href="/assets/img/gurotopia.ico"
     type="image/x-icon">
   <link rel="icon"
-    href="https://s3.eu-west-1.amazonaws.com/cdn.growtopiagame.com/website/resources/assets/images/growtopia.ico"
+    href="/assets/img/gurotopia.ico"
     type="image/x-icon">
   <!-- include bootstrap and custom  css -->
   <link media="all" rel="stylesheet"
-    href="https://s3.eu-west-1.amazonaws.com/cdn.growtopiagame.com/website/resources/assets/css/faq-main.css">
+    href="/assets/css/faq-main.css">
   <!-- include custom  css -->
   <link media="all" rel="stylesheet"
-    href="https://s3.eu-west-1.amazonaws.com/cdn.growtopiagame.com/website/resources/assets/css/shop-custom.css">
+    href="/assets/css/shop-custom.css">
   <link media="all" rel="stylesheet"
-    href="https://s3.eu-west-1.amazonaws.com/cdn.growtopiagame.com/website/resources/assets/css/ingame-custom.css">
+    href="/assets/css/ingame-custom.css">
   <style>
     .modal-backdrop {
       background-color: rgba(0, 0, 0, 0.1) !important;
@@ -65,17 +65,17 @@
                                   <input name="_token" type="hidden" value="{{ data }}">
                                   <div class="form-group">
                                     <input id="login-name" class="form-control grow-text" required="required"
-                                      placeholder="Your Growtopia Name *" name="growId" value="" type="text"
+                                      placeholder="Your Gurotopia Name *" name="growId" value="" type="text"
                                       pattern="[A-Za-z0-9]+" title="Only letters and numbers are allowed">
                                   </div>
                                   <div class="form-group">
                                     <input id="password" class="form-control grow-text" required="required"
-                                      placeholder="Your Growtopia Password *" name="password" type="password" value=""
+                                      placeholder="Your Gurotopia Password *" name="password" type="password" value=""
                                       pattern="[A-Za-z0-9@._!\-]+"
                                       title="Only letters, numbers, and @ . _ ! - are allowed">
                                   </div>
                                   <div class="form-group text-center forgot-password">
-                                    <a href="https://www.growtopiagame.com/account" target="_blank">Forgot Password</a>
+                                    <a href="#" id="forgotPassword">Forgot Password</a>
                                     <br>
                                     <a href="#" id="toggleRegister" style="margin-top: 5px; display: inline-block;">Register Account</a>
                                   </div>
@@ -87,7 +87,7 @@
                                   <input name="_token" type="hidden" value="{{ data }}">
                                   <div class="form-group">
                                     <input id="register-name" class="form-control grow-text" required="required"
-                                      placeholder="Your Growtopia Name *" name="growId" value="" type="text"
+                                      placeholder="Your Gurotopia Name *" name="growId" value="" type="text"
                                       pattern="[A-Za-z0-9]+" title="Only letters and numbers are allowed">
                                   </div>
                                   <div class="form-group">
@@ -96,7 +96,7 @@
                                   </div>
                                   <div class="form-group">
                                     <input id="register-password" class="form-control grow-text" required="required"
-                                      placeholder="Your Growtopia Password *" name="password" type="password" value=""
+                                      placeholder="Your Gurotopia Password *" name="password" type="password" value=""
                                       pattern="[A-Za-z0-9@._!\-]+"
                                       title="Only letters, numbers, and @ . _ ! - are allowed">
                                   </div>
@@ -218,10 +218,10 @@
 </body>
 <!-- JQUERY LIBRARY -->
 <script
-  src="https://s3.eu-west-1.amazonaws.com/cdn.growtopiagame.com/website/resources/assets/js/jquery-3.7.1.min.js"></script>
+  src="/assets/js/jquery-3.7.1.min.js"></script>
 <!-- boostrap javascript -->
 <script
-  src="https://s3.eu-west-1.amazonaws.com/cdn.growtopiagame.com/website/resources/assets/js/bootstrap3.min.js"></script>
+  src="/assets/js/bootstrap3.min.js"></script>
 <script>
   let clicked = false;
   $("a").click(function () { if (clicked === false) { clicked = true; return true; } $(this).attr("onclick", "return false;"); });
@@ -251,9 +251,14 @@
     };
     $('#modalButton').trigger('click');
     $('.close').on('click', function () {
-      window.location = "https://login.growtopiagame.com/player/validate/close"
+      window.location = "/player/validate/close"
     });
     // $('form').submit($('form .grow-button').attr('disabled', 'true'));
+
+    $('#forgotPassword').on('click', function (e) {
+      e.preventDefault();
+      alert('Please contact a Gurotopia administrator to recover your account.');
+    });
 
     var observer = new MutationObserver(function (mutations) {
       mutations.forEach(function (mutation) {
